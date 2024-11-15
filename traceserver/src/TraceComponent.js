@@ -7,23 +7,19 @@ import {IconButton} from "@mui/material";
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 const TraceComponent = () => {
-    const {t} = useTranslation(); // Use the useTranslation hook
+    const {t} = useTranslation();
     const cookies = new Cookies();
-
+    const [shouldLoadList, setShouldLoadList] = useState(false);
     const [error, setError] = useState(null);
-    const [isLoaded, setIsLoaded] = useState(false);
     const [listLoaded, setListLoaded] = useState(false);
-    const [isList, setIsList] = useState(true);
     const [listItems, setListItems] = useState([]);
-    const [searchProduct, setSearchProduct] = useState(localStorage.getItem('searchProduct') || '');
-    const [searchLot, setSearchLot] = useState(localStorage.getItem('searchLot') || '');
-    const [searchWarehouse, setSearchWarehouse] = useState(localStorage.getItem('searchWarehouse') || '');
-    const [searchCompany, setSearchCompany] = useState(localStorage.getItem('searchCompany') || '');
-    const [isFirstLoad, setIsFirstLoad] = useState(!localStorage.getItem('searchProduct'));
+    const [searchProduct, setSearchProduct] = useState(sessionStorage.getItem('searchProduct') || '');
+    const [searchLot, setSearchLot] = useState(sessionStorage.getItem('searchLot') || '');
+    const [searchWarehouse, setSearchWarehouse] = useState(sessionStorage.getItem('searchWarehouse') || '');
+    const [searchCompany, setSearchCompany] = useState(sessionStorage.getItem('searchCompany') || '');
+    const [isFirstLoad, setIsFirstLoad] = useState(sessionStorage.getItem('searchProduct') === null);
 
     const loadList = () => {
-        console.log("before fetch");
-
         fetch(`${process.env.REACT_APP_SERVER_URL}/status-list?product=${searchProduct}&lot=${searchLot}&warehouse=${searchWarehouse}&company=${searchCompany}`, {
             method: 'GET',
             headers: {
@@ -33,7 +29,6 @@ const TraceComponent = () => {
             }
         })
             .then(response => {
-                console.log("before result", response);
                 if (response.ok) {
                     return response.json();
                 } else {
@@ -41,11 +36,9 @@ const TraceComponent = () => {
                 }
             })
             .then(data => {
-                console.log("Items:", data.items);
-
                 if (Array.isArray(data.items)) {
-                    setListLoaded(true);
                     setListItems(data.items);
+                    setListLoaded(true);
                 } else {
                     setError("Unexpected response format");
                 }
@@ -58,6 +51,10 @@ const TraceComponent = () => {
 
 
     const handleSubmit = (event) => {
+        setIsFirstLoad(false)
+        if (sessionStorage.getItem('searchProduct') === null) {
+            sessionStorage.setItem('searchProduct', "")
+        }
         event.preventDefault();
         loadList();
     };
@@ -67,62 +64,82 @@ const TraceComponent = () => {
     };
 
     useEffect(() => {
-        console.log("entered traceComponent")
         if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
-            localStorage.clear();
+            sessionStorage.clear();
             setSearchProduct('');
             setSearchLot('');
             setSearchWarehouse('');
             setSearchCompany('');
-            loadList();
+            setIsFirstLoad(true)
+            setShouldLoadList(true)
         } else {
+            sessionStorage.setItem('searchProduct', "")
             loadList();
         }
 
-        return () => localStorage.clear();
+        return () => sessionStorage.clear();
     }, []);
+
+    useEffect(() => {
+        if (shouldLoadList) {
+            loadList();
+            setShouldLoadList(false);
+        }
+    }, [shouldLoadList]);
 
     return (
         <div>
-            {isList ? (
-                error ? (
-                    <div>{t('Error Loading List')}: {error.message}</div>
-                ) : !listLoaded ? (
-                    <div>{t('Loading...')}</div>
-                ) : (
-                    <Table>
-                        <tbody>
-                        <tr>
-                            <td style={searchControlsStyle}>
-                                <form onSubmit={handleSubmit}>
-                                    <div className="form-group">
-                                        <label htmlFor="company">{"company"}</label>
-                                        <input type="text" value={searchCompany}
-                                               onChange={(e) => setSearchCompany(e.target.value)}
-                                               className="form-control form-control-sm" id="company"/>
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="warehouse">{t('warehouse')}</label>
-                                        <input type="text" value={searchWarehouse}
-                                               onChange={(e) => setSearchWarehouse(e.target.value)}
-                                               className="form-control form-control-sm" id="warehouse"/>
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="product">{t('product')}</label>
-                                        <input type="text" value={searchProduct}
-                                               onChange={(e) => setSearchProduct(e.target.value)}
-                                               className="form-control form-control-sm" id="product"/>
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="lot">{t('lot')}</label>
-                                        <input type="text" value={searchLot}
-                                               onChange={(e) => setSearchLot(e.target.value)}
-                                               className="form-control form-control-sm" id="lot"/>
-                                    </div>
-                                    <Button type="submit">{t('search')}</Button>
-                                </form>
-                            </td>
-                            <td>
+            {error ? (
+                <div>{t('Error Loading List')}: {error.message}</div>
+            ) : !listLoaded ? (
+                <div>{t('Loading...')}</div>
+            ) : (
+                <Table>
+                    <tbody>
+                    <tr>
+                        <td style={searchControlsStyle}>
+                            <form onSubmit={handleSubmit}>
+                                <div className="form-group">
+                                    <label htmlFor="company">{"company"}</label>
+                                    <input type="text" value={searchCompany}
+                                           onChange={(e) => {
+                                               sessionStorage.setItem("searchCompany", e.target.value)
+                                               setSearchCompany(e.target.value)
+                                           }}
+                                           className="form-control form-control-sm" id="company"/>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="warehouse">{t('warehouse')}</label>
+                                    <input type="text" value={searchWarehouse}
+                                           onChange={(e) => {
+                                               sessionStorage.setItem('searchWarehouse', e.target.value)
+                                               setSearchWarehouse(e.target.value)
+                                           }}
+                                           className="form-control form-control-sm" id="warehouse"/>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="product">{t('product')}</label>
+                                    <input type="text" value={searchProduct}
+                                           onChange={(e) => {
+                                               sessionStorage.setItem("searchProduct", e.target.value)
+                                               setSearchProduct(e.target.value)
+                                           }}
+                                           className="form-control form-control-sm" id="product"/>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="lot">{t('lot')}</label>
+                                    <input type="text" value={searchLot}
+                                           onChange={(e) => {
+                                               sessionStorage.setItem('searchLot', e.target.value)
+                                               setSearchLot(e.target.value)
+                                           }}
+                                           className="form-control form-control-sm" id="lot"/>
+                                </div>
+                                <Button type="submit">{t('search')}</Button>
+                            </form>
+                        </td>
+                        <td>
+                            {!isFirstLoad ?
                                 <Table striped bordered hover size="sm">
                                     <thead>
                                     <tr>
@@ -176,17 +193,14 @@ const TraceComponent = () => {
                                         </tr>
                                     )}
                                     </tbody>
-                                </Table>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </Table>
-                )
-            ) : (
-                <div>{t('Something went wrong')}</div>
-            )}
-        </div>
-    );
+                                </Table> : null}
+                        </td>
+                    </tr>
+                    </tbody>
+                </Table>
+            )
+            }
+        </div>);
 };
 
 export default TraceComponent;

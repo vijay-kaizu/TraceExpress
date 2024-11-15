@@ -31,7 +31,6 @@ const TraceItem = () => {
         selectedItemProps: []
     });
     const {t} = useTranslation();
-    const history = null;
     const {product, warehouse, lot} = useParams();
     const navigate = useNavigate();
     const [zoomValue, setZoomValue] = React.useState(1.0);
@@ -57,6 +56,12 @@ const TraceItem = () => {
         };
     }, [product, warehouse, lot/*, zoomValue*/]);
 
+    useEffect(() => {
+        if (state.items.length > 0) {
+            diagram.addDiagramListener("ChangedSelection", handleModelChange);
+        }
+    }, [state.items]);
+
     const loadItem = (item) => {
         const cookies = new Cookies();
         fetch(`${process.env.REACT_APP_SERVER_URL}/item?product=${item.PART_CODE}&warehouse=${item.WAREHOUSE}&lot=${item.IC_LOT_NUMBER}`, {
@@ -69,10 +74,8 @@ const TraceItem = () => {
             .then(res => res.json())
             .then(
                 (result) => {
-                    console.log("item result good " + JSON.stringify(result.items))
                     setState((prevState) => ({
                         ...prevState,
-                        isLoaded: true,
                         items: result.items,
                         relevantItems: result.items,
                         itemsNodeDataArray: result.nodes,
@@ -81,11 +84,9 @@ const TraceItem = () => {
                     zoomOut();
                 },
                 (error) => {
-                    console.log("item result error ")
                     setState((prevState) => ({
                         ...prevState,
-                        isLoaded: true,
-                        error
+                        error: error
                     }));
                 }
             );
@@ -199,7 +200,7 @@ const TraceItem = () => {
             }
         });
 
-        diagram.addDiagramListener("ChangedSelection", handleModelChange);
+        // diagram.addDiagramListener("ChangedSelection", handleModelChange);
 
         return diagram;
     };
@@ -248,20 +249,17 @@ const TraceItem = () => {
         console.log(changes);
         console.log('GoJS model changed!');
         if (changes instanceof go.DiagramEvent) {
-            console.log("Selection Changed");
-            console.log(JSON.stringify(state.items));
-            let itemsCopy = state.items;
+            let itemsCopy = [...state.items];
             let selectedProps = [];
             let newList = [];
             let selectedNodeItemTemp = null;
             let movementCodeTemp = null;
             let nodePropsTemp = null;
             if (diagram.selection.size === 0) {
-                newList = state.items;
+                newList = [...state.items];
             } else {
                 diagram.selection.each(function (part) {
                     if (part instanceof go.Node) {
-                        console.log("part.data " + part.data);
                         let allUniqueKeys = [];
                         let selectedNodeKey = part.data.key;
                         diagram.model.linkDataArray.map(link => {
@@ -297,12 +295,10 @@ const TraceItem = () => {
                                     };
                                 }
                                 if (nodeMap[key].movement_code !== null) {
-                                    // console.log("all required -\n" + JSON.stringify(itemMap[nodeMap[key].UNIQUE_ID]))
                                     selectedProps = itemMap[nodeMap[key].UNIQUE_ID];
                                     console.log("selectedProps -\n" + JSON.stringify(selectedProps))
                                     movementCodeTemp = nodeMap[key].movement_code;
                                     nodePropsTemp = nodeMap[key].node_props;
-                                    // console.log("nodePropsTemp -\n" + JSON.stringify(nodePropsTemp))
                                 }
                             } else {
                                 if (!keyFound) {
@@ -377,9 +373,6 @@ const TraceItem = () => {
                         }));
                     }
                 },
-                // Note: it's important to handle errors here
-                // instead of a catch() block so that we don't swallow
-                // exceptions from actual bugs in components.
                 (error) => {
                     setState((prevState) => ({
                         ...prevState,
@@ -387,7 +380,6 @@ const TraceItem = () => {
                         error
                     }));
                 }
-
             )
     }
 
