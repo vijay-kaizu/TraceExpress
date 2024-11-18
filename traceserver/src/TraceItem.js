@@ -12,7 +12,7 @@ import {useTranslation} from 'react-i18next';
 import {IconButton} from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TableChartIcon from '@mui/icons-material/TableChart';
-import {useNavigate, useParams} from "react-router-dom";
+import {useLocation, useNavigate, useParams} from "react-router-dom";
 import LookupResult from "./LookupResult";
 
 let diagram;
@@ -33,6 +33,7 @@ const TraceItem = () => {
     const {t} = useTranslation();
     const {product, warehouse, lot} = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [zoomValue, setZoomValue] = React.useState(1.0);
 
     useEffect(() => {
@@ -54,7 +55,7 @@ const TraceItem = () => {
         return () => {
             window.removeEventListener('wheel', handleWheel);
         };
-    }, [product, warehouse, lot/*, zoomValue*/]);
+    }, [product, warehouse, lot]);
 
     useEffect(() => {
         if (state.items.length > 0) {
@@ -147,7 +148,11 @@ const TraceItem = () => {
     };
 
     const navigateBack = () => {
-        navigate('/');
+        if (location.state?.from) {
+            navigate(location.state.from);
+        } else {
+            navigate(-1);
+        }
     };
 
     const initDiagram = () => {

@@ -14,6 +14,7 @@ const Access = () => {
             const dbName = backend_db_name || 'default_db';
             cookies.set('backend_db_name', dbName, { path: '/', maxAge: 360000 });
             console.log("navigating to trace component")
+            sessionStorage.clear();
             navigate('/');
         }
     }, [access_token, backend_db_name, cookies, navigate]);
