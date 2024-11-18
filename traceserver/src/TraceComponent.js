@@ -32,7 +32,12 @@ const TraceComponent = () => {
                 if (response.ok) {
                     return response.json();
                 } else {
-                    throw new Error('Failed to load data. Unknown error occurred');
+                    return response.json().then(errorData => {
+                        if (errorData && errorData.message) {
+                            setError(errorData.message);
+                        }
+                        throw new Error(errorData.message || 'Failed to load data. Unknown error occurred');
+                    });
                 }
             })
             .then(data => {
@@ -90,7 +95,7 @@ const TraceComponent = () => {
     return (
         <div>
             {error ? (
-                <div>{t('Error Loading List')}: {error.message}</div>
+                <div>{t('Error Loading List')}: {error}</div>
             ) : !listLoaded ? (
                 <div>{t('Loading...')}</div>
             ) : (
