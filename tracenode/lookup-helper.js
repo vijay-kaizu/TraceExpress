@@ -134,9 +134,24 @@ module.exports = {
         try {
 
             if (db_type === 'mssql') {
-
-                await mssql.connect(db_type + '://' + username + ":" + password + "@" + host + "/" + db_instance);
-                mssql.close();
+                const config = {
+                    user: username,
+                    password: password,
+                    server: host,
+                    database: db_instance,
+                    options: {
+                        encrypt: true,
+                        trustServerCertificate: true
+                    }
+                };
+                try {
+                    await mssql.connect(config);
+                    console.log('Connection successful!');
+                } catch (err) {
+                    console.error('Connection failed:', err);
+                } finally {
+                    await mssql.close();
+                }
                 success = true;
                 message = "Successfully connected to Microsoft SQL " + host + " " + username + " " + db_instance;
             } else if (db_type === 'mysql') {
