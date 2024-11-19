@@ -251,7 +251,6 @@ const TraceItem = () => {
 
 
     const handleModelChange = (changes) => {
-        console.log(changes);
         console.log('GoJS model changed!');
         if (changes instanceof go.DiagramEvent) {
             let itemsCopy = [...state.items];
@@ -301,7 +300,6 @@ const TraceItem = () => {
                                 }
                                 if (nodeMap[key].movement_code !== null) {
                                     selectedProps = itemMap[nodeMap[key].UNIQUE_ID];
-                                    console.log("selectedProps -\n" + JSON.stringify(selectedProps))
                                     movementCodeTemp = nodeMap[key].movement_code;
                                     nodePropsTemp = nodeMap[key].node_props;
                                 }
@@ -319,7 +317,6 @@ const TraceItem = () => {
                     }
                 });
             }
-            console.log("New List" + JSON.stringify(newList));
             setState((prevState) => ({
                 ...prevState,
                 relevantItems: newList,
@@ -429,6 +426,13 @@ const TraceItem = () => {
                                 aria-label="back" size="medium" onClick={toggleTable}>
                         <TableChartIcon fontSize="inherit"/>
                     </IconButton>
+                </td>
+                <td>
+                    <Button onClick={() => {
+                        sessionStorage.clear()
+                    }}
+                            style={showStyle}
+                            href={'/'}>{t('home_button')}</Button>
                 </td>
                 <td>
                     <Button

@@ -20,6 +20,7 @@
   "loading": "Loading...",
   "no_matching_records": "No matching records found",
   "start_new_inquiry": "Start New Inquiry",
+  "home_button": "Home",
   "trace": {
     "COMPANY_CODE": "COMPANY_CODE",
     "IC_LT_FROM_INDICATOR": "IC_LT_FROM INDICATOR",
