@@ -3,7 +3,7 @@ import Cookies from 'universal-cookie';
 import {useNavigate, useParams} from "react-router-dom";
 
 const AdminAcceess = () => {
-    const { access_token, backend_db_name } = useParams();
+    const {access_token, backend_db_name} = useParams();
     const navigate = useNavigate();
     const cookies = new Cookies();
 
@@ -14,6 +14,7 @@ const AdminAcceess = () => {
             const dbName = backend_db_name || 'default_db';
             cookies.set('backend_db_name', dbName, { path: '/', maxAge: 360000 });
             console.log("navigating to trace component")
+            sessionStorage.clear();
             navigate('/settings');
         }
     }, [access_token, backend_db_name, cookies, navigate]);
