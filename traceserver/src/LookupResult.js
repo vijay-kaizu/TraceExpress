@@ -1,28 +1,30 @@
-import React, {useState, useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import Cookies from 'universal-cookie';
 import Table from "react-bootstrap/Table";
 import {CircularProgress} from "@mui/material";
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
 
-const LookupResult = ({movement_code, lookup_id, node_props, all_props, lookup_name}) => {
+const LookupResult = ({movement_code,
+                          lookup_id,
+                          node_props,
+                          all_props,
+                          lookup_name,
+                          activeItemId,
+                          setActiveItemId
+                      }) => {
     const [lookupResults, setLookupResults] = useState(null);
     const [success, setSuccess] = useState(true);
     const [message, setMessage] = useState(null);
     const [loaded, setLoaded] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [hidePanel, setHidePanel] = useState(true);
 
     useEffect(() => {
-        // Reset the state on component mount or when dependencies change
         setLookupResults(null);
         setLoaded(false);
     }, [movement_code, lookup_id]);
 
     const loadLookupResults = () => {
-        console.log('loadLookupResults for ' + movement_code + '  ' + lookup_id);
-        console.log('selectedItemProps for ' + JSON.stringify(all_props));
-
         if (!loaded) {
             setLoading(true);
             const cookies = new Cookies();
@@ -43,16 +45,18 @@ const LookupResult = ({movement_code, lookup_id, node_props, all_props, lookup_n
                         setMessage(result.message);
                         setLoaded(true);
                         setLoading(false);
-                        setHidePanel(false);
+                        setActiveItemId(lookup_id);
                     },
                     (error) => {
                         console.error(error);
                     }
                 );
         } else {
-            setHidePanel(prevState => !prevState);
+            setActiveItemId(activeItemId === lookup_id ? null : lookup_id);
         }
     };
+
+    const isPanelVisible = activeItemId === lookup_id;
 
     const lookupNameDivStyle = {
         backgroundColor: '#17a2b8',
@@ -61,7 +65,7 @@ const LookupResult = ({movement_code, lookup_id, node_props, all_props, lookup_n
         padding: '3px',
         fontSize: '12px',
         marginTop: '10px',
-        width: '250px'
+        width: '325px'
     };
     const errorMessageStyle = {
         color: 'red'
@@ -75,22 +79,30 @@ const LookupResult = ({movement_code, lookup_id, node_props, all_props, lookup_n
         backgroundColor: '#ffffff',
         padding: '2px',
         fontSize: '10px',
-        width: '250px',
-        maxHeight: '300px',
-        display: hidePanel ? 'none' : 'block',
+        width: '325px',
+        display: !isPanelVisible ? 'none' : 'block',
         overflow: 'scroll'
     };
     const valueStyle = {
         color: '#17a2b8',
         padding: '3px',
         fontWeight: 'bold',
-        fontSize: '14px',
+        fontSize: '16px',
+    };
+    const keyStyle = {
+        padding: '3px',
+        fontWeight: 'bold',
+        fontSize: '16px',
     };
     const textStyle = {
-        display: 'table-cell',
+        display: 'inline-block',
         fontSize: '16px',
         verticalAlign: 'middle',
-        padding: '5px'
+        padding: '5px',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        maxWidth: '300px',
     };
 
     const iconStyle = {
@@ -104,7 +116,11 @@ const LookupResult = ({movement_code, lookup_id, node_props, all_props, lookup_n
         marginBottom: '0px'
     };
     const lookupNameStyle = {
-        width: '90%'
+        width: '95%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        padding: '5px',
     };
     const lookupIconStyle = {
         width: '10%'
@@ -115,7 +131,7 @@ const LookupResult = ({movement_code, lookup_id, node_props, all_props, lookup_n
         let keys = Object.keys(lookupResults[0]);
         for (let i = 0; i < keys.length; i++) {
             let row = [];
-            row.push(<td>{keys[i]}</td>);
+            row.push(<td style={keyStyle}>{keys[i]}</td>);
             for (let j = 0; j < lookupResults.length; j++) {
                 row.push(<td style={valueStyle}>{lookupResults[j][keys[i]]}</td>);
             }
@@ -130,16 +146,21 @@ const LookupResult = ({movement_code, lookup_id, node_props, all_props, lookup_n
     return (
         <div>
             <div style={lookupNameDivStyle} onClick={loadLookupResults}>
-                <table>
+                <table style={{width: '100%', tableLayout: 'fixed'}}>
                     <tr>
                         <td style={lookupNameStyle}>
                             <span style={textStyle}>{lookup_name}</span>
                         </td>
                         <td style={lookupIconStyle}>
-                            {loading ? <CircularProgress style={progressStyle}/>
-                                : (!hidePanel ?
-                                    <IndeterminateCheckBoxIcon style={iconStyle}/> :
-                                    <LocalHospitalIcon style={iconStyle}/>)}
+                            {loading ? (
+                                <CircularProgress style={progressStyle}/>
+                            ) : (
+                                isPanelVisible ? (
+                                    <IndeterminateCheckBoxIcon style={iconStyle}/>
+                                ) : (
+                                    <LocalHospitalIcon style={iconStyle}/>
+                                )
+                            )}
                         </td>
                     </tr>
                 </table>

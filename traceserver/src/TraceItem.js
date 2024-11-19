@@ -28,7 +28,8 @@ const TraceItem = () => {
         movementCode: null,
         movementCodeLoading: false,
         showBottomTable: process.env.REACT_APP_SHOW_BOTTOM_TABLE === 'true',
-        selectedItemProps: []
+        selectedItemProps: [],
+        activeItemId: null
     });
     const {t} = useTranslation();
     const {product, warehouse, lot} = useParams();
@@ -230,7 +231,10 @@ const TraceItem = () => {
 
     const movementCodeShowStyle = {
         minWidth: '200px',
-        verticalAlign: 'top'
+        verticalAlign: 'top',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        display: 'block',
     };
     const movementCodeHideStyle = {
         display: 'none'
@@ -252,6 +256,11 @@ const TraceItem = () => {
 
     const handleModelChange = (changes) => {
         console.log('GoJS model changed!');
+        setState((prevState) => ({
+            ...prevState,
+            activeItemId: null,
+        }));
+        setState({...state})
         if (changes instanceof go.DiagramEvent) {
             let itemsCopy = [...state.items];
             let selectedProps = [];
@@ -461,7 +470,13 @@ const TraceItem = () => {
                             <div key={item.lookup_id}>
                                 <LookupResult movement_code={item.movement_code} lookup_id={item.lookup_id}
                                               index={index} lookup_name={item.lookup_name}
-                                              node_props={item.node_props} all_props={state.selectedItemProps}/>
+                                              node_props={item.node_props} all_props={state.selectedItemProps}
+                                              activeItemId={state.activeItemId}
+                                              setActiveItemId={(id) => setState((prevState) => ({
+                                                  ...prevState,
+                                                  activeItemId: id,
+                                              }))
+                                              }/>
                                 {console.log("the item is -\n" + JSON.stringify(state.selectedItemProps))}
                             </div>
                         )) : ''
