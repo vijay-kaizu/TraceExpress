@@ -1,8 +1,7 @@
 const fs = require('fs');
 const mssql = require('mssql');
-var mysql = require('sync-mysql');
+const mysql = require('mysql2/promise');
 const oracledb = require('oracledb');
-const envSettings = require("./env-settings");
 const sql = require("mssql");
 
 module.exports = {
@@ -50,49 +49,44 @@ module.exports = {
                 console.log(query);
                 console.log(convertToUrl(lookupDB));
                 if (lookupDB.db_type === 'mssql') {
-
-                    const dbUrl = envSettings.databases[tenant_name].DB_URL;
-                    const regex = /mssql:\/\/(.*?):"(.*?)"@(.*?)(?:\/(.*))/;
-                    const matches = dbUrl.match(regex);
-
-                    if (matches) {
-                        const [, user, password, server, database] = matches;
-
-                        const config = {
-                            user,
-                            password,
-                            server,
-                            database,
-                            options: {
-                                encrypt: true,
-                                trustServerCertificate: true
-                            }
-                        };
-
-                        await sql.close();
-                        await sql.connect(config);
-                        const result = await sql.query(query);
-                        success = true;
-                        message = "Returning lookups for movement code = " + movement_code + " and lookup id = " + lookup_id;
-                        lookupResult = result.recordset;
-                        console.log("Connected to MSSQL database:", this.db_name);
-                    } else {
-                        console.error("Invalid MSSQL connection URL format.");
-                    }
-                } else if (lookupDB.db_type === 'mysql') {
-
-                    let mysql_connection = new mysql({
-                        host: lookupDB.host,
+                    const config = {
                         user: lookupDB.username,
-                        password: lookupDB.password
-                    });
+                        password: lookupDB.password,
+                        server: lookupDB.host,
+                        database: lookupDB.db_instance,
+                        options: {
+                            encrypt: true,
+                            trustServerCertificate: true
+                        }
+                    };
 
-                    const result = mysql_connection.query(query);
-
+                    await sql.close();
+                    await sql.connect(config);
+                    const result = await sql.query(query);
                     success = true;
                     message = "Returning lookups for movement code = " + movement_code + " and lookup id = " + lookup_id;
-                    lookupResult = result;
+                    lookupResult = result.recordset;
+                    console.log("Connected to MSSQL database:", this.db_name);
+                } else if (lookupDB.db_type === 'mysql') {
 
+                    try {
+                        let mysql_connection = await mysql.createConnection({
+                            host: lookupDB.host,
+                            user: lookupDB.username,
+                            password: lookupDB.password,
+                            database: lookupDB.db_instance
+                        });
+                        const [rows, fields] = await mysql_connection.execute(query);
+                        success = true;
+                        message = "Returning lookups for movement code = " + movement_code + " and lookup id = " + lookup_id;
+                        lookupResult = rows;
+                        await mysql_connection.end();
+
+                    } catch (err) {
+                        success = false;
+                        message = "Error executing query: " + err.message;
+                        lookupResult = null;
+                    }
                 } else if (lookupDB.db_type === 'oracle') {
 
                     console.log("Processing oracle db");
@@ -128,69 +122,75 @@ module.exports = {
             message = "" + err;
         }
         return {"success": success, "message": message, "lookup_result": lookupResult};
-    }, testConnection: async function testConnection(db_type, host, username, password, db_instance) {
-        let message = "Failed to connect to db";
-        let success = false;
-        try {
+    }, testConnection:
 
-            if (db_type === 'mssql') {
-                const config = {
-                    user: username,
-                    password: password,
-                    server: host,
-                    database: db_instance,
-                    options: {
-                        encrypt: true,
-                        trustServerCertificate: true
+        async function testConnection(db_type, host, username, password, db_instance) {
+            let message = "Failed to connect to db";
+            let success = false;
+            try {
+
+                if (db_type === 'mssql') {
+                    const config = {
+                        user: username,
+                        password: password,
+                        server: host,
+                        database: db_instance,
+                        options: {
+                            encrypt: true,
+                            trustServerCertificate: true
+                        }
+                    };
+                    try {
+                        await mssql.connect(config);
+                        console.log('Connection successful!');
+                    } catch (err) {
+                        console.error('Connection failed:', err);
+                    } finally {
+                        await mssql.close();
                     }
-                };
-                try {
-                    await mssql.connect(config);
-                    console.log('Connection successful!');
-                } catch (err) {
-                    console.error('Connection failed:', err);
-                } finally {
-                    await mssql.close();
+                    success = true;
+                    message = "Successfully connected to Microsoft SQL " + host + " " + username + " " + db_instance;
+                } else if (db_type === 'mysql') {
+
+                    let mysql_connection = await mysql.createConnection({
+                        host: host,
+                        user: username,
+                        password: password,
+                        database: db_instance
+                    });
+                    success = true;
+                    message = "Successfully connected to My SQL " + host + " " + username + " " + db_instance;
+
+                } else if (db_type === 'oracle') {
+
+                    console.log("Processing oracle db");
+                    let oracle_connection = await oracledb.getConnection({
+                        user: username,
+                        password: password,
+                        connectString: host + '/' + db_instance
+                    });
+                    message = "Successfully connected to Oracle " + host + " " + username + " " + db_instance;
+                    success = true;
+                } else {
+                    success = false;
+                    message = "Unsupported db type - " + db_type;
                 }
-                success = true;
-                message = "Successfully connected to Microsoft SQL " + host + " " + username + " " + db_instance;
-            } else if (db_type === 'mysql') {
 
-                let mysql_connection = new mysql({
-                    host: host,
-                    user: username,
-                    password: password
-                });
-                success = true;
-                message = "Successfully connected to My SQL " + host + " " + username + " " + db_instance;
-
-            } else if (db_type === 'oracle') {
-
-                console.log("Processing oracle db");
-                let oracle_connection = await oracledb.getConnection({
-                    user: username,
-                    password: password,
-                    connectString: host + '/' + db_instance
-                });
-                message = "Successfully connected to Oracle " + host + " " + username + " " + db_instance;
-                success = true;
-            } else {
+            } catch (err) {
+                console.log("ERROR");
+                console.log(err);
                 success = false;
-                message = "Unsupported db type - " + db_type;
+                message = "" + err;
             }
-
-        } catch (err) {
-            console.log("ERROR");
-            console.log(err);
-            success = false;
-            message = "" + err;
+            return {"success": success, "message": message};
         }
-        return {"success": success, "message": message};
-    },
-};
+
+    ,
+}
+;
 
 function convertToUrl(lookupDB) {
-    return lookupDB.db_type + '://' + lookupDB.username + ":" + lookupDB.password + "@" + lookupDB.host + "/" + lookupDB.db_instance;
+    return lookupDB.db_type + '://' + lookupDB.username + ':"' + lookupDB.password + '"@' + lookupDB.host + '/' + lookupDB.db_instance;
 }
 
 function getLookupDBs(tenant_name) {

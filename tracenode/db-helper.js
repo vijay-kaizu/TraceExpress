@@ -1,5 +1,6 @@
 var envSettings = require('./env-settings');
-const sql = require('mssql');
+const mssql = require('mssql');
+const mysql = require('mysql2/promise');
 const oracledb = require('oracledb');
 
 class DbHelper {
@@ -7,6 +8,7 @@ class DbHelper {
     constructor(db_name) {
         this.oracle_connection = null;
         this.db_name = db_name;
+        this.mysqlConnection = null;
     }
 
     async connect() {
@@ -19,11 +21,13 @@ class DbHelper {
 
         } else {
             const dbUrl = envSettings.databases[this.db_name].DB_URL;
-            const regex = /mssql:\/\/(.*?):"(.*?)"@(.*?)(?:\/(.*))/;
-            const matches = dbUrl.match(regex);
+            const mssqlRegex = /mssql:\/\/(.*?):"(.*?)"@(.*?)(?:\/(.*))/;
+            const regex = /mysql:\/\/(.*?):"(.*?)"@(.*?)(?:\/(.*))/;
+            const mssqlMatch = dbUrl.match(mssqlRegex);
+            const match = dbUrl.match(regex);
 
-            if (matches) {
-                const [, user, password, server, database] = matches;
+            if (mssqlMatch) {
+                const [, user, password, server, database] = mssqlMatch;
 
                 const config = {
                     user,
@@ -36,9 +40,24 @@ class DbHelper {
                     }
                 };
 
-                await sql.close();
-                await sql.connect(config);
+                await mssql.close();
+                await mssql.connect(config);
                 console.log("Connected to MSSQL database:", this.db_name);
+            } else if (match) {
+                const [, user, password, server, database] = match;
+
+                const config = {
+                    user,
+                    password,
+                    host: server,
+                    database
+                };
+                if (this.mysqlConnection) {
+                    await this.mysqlConnection.end();
+                    console.log('Closed existing MySQL connection');
+                }
+                this.mysqlConnection = await mysql.createConnection(config);
+                console.log("Connected to MYSQL database:", this.db_name);
             } else {
                 console.error("Invalid MSSQL connection URL format.");
             }
@@ -55,14 +74,19 @@ class DbHelper {
                     outFormat: oracledb.OUT_FORMAT_OBJECT
                 }
             );
+        } else if (envSettings.databases[this.db_name].DB_TYPE === "mssql") {
+            return mssql.query(queryString);
         } else {
-            return await sql.query(queryString);
+            const [rows] = await this.mysqlConnection.execute(queryString);
+            return {recordset: rows};
         }
     }
 
     extract(result) {
         if (envSettings.databases[this.db_name].DB_TYPE === "oracle") {
             return result.rows;
+        } else if (envSettings.databases[this.db_name].DB_TYPE === "mssql") {
+            return result.recordset;
         } else {
             return result.recordset;
         }
@@ -79,8 +103,10 @@ class DbHelper {
     selectQuery() {
         if (envSettings.databases[this.db_name].DB_TYPE === "oracle") {
             return 'SELECT a.*, rowid AS UNIQUE_ID from IC_LOT_TRACE a';
-        } else {
+        } else if (envSettings.databases[this.db_name].DB_TYPE === "mssql") {
             return 'SELECT *, NEWID() as UNIQUE_ID from IC_LOT_TRACE';
+        } else {
+            return 'SELECT *, UUID() as UNIQUE_ID from IC_LOT_TRACE';
         }
     }
 }
