@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import GetAppIcon from '@mui/icons-material/GetApp';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
@@ -198,12 +198,20 @@ const TraceItem = () => {
                 ),
             );
 
+        const centerDiagram = () => {
+            diagram.position = new go.Point(200, 200);
+            setZoomValue(3.0)
+            diagram.scale = 2.0;
+        };
+
+
         diagram.addDiagramListener("InitialLayoutCompleted", function () {
             if (diagram.model.nodeDataArray.length > 2) {
                 var data = diagram.model.nodeDataArray[1];
                 var node = diagram.findNodeForData(data);
                 diagram.centerRect(node.actualBounds);
             }
+            centerDiagram();
         });
 
         // diagram.addDiagramListener("ChangedSelection", handleModelChange);
@@ -226,7 +234,9 @@ const TraceItem = () => {
 
     const diagramStyle = {
         width: '85%',
-        verticalAlign: 'top'
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
     };
 
     const movementCodeShowStyle = {
@@ -485,6 +495,7 @@ const TraceItem = () => {
             </tr>
             </tbody>
         </table>
+
 
         <div style={bottomTableStyle}>
             <Table striped bordered hover size="sm">
