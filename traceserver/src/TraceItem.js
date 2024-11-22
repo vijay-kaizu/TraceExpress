@@ -240,6 +240,7 @@ const TraceItem = () => {
     };
 
     const movementCodeShowStyle = {
+        marginTop: '10px',
         minWidth: '200px',
         verticalAlign: 'top',
         maxHeight: '90vh',

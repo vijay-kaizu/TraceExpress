@@ -64,7 +64,7 @@ const LookupResult = ({movement_code,
         display: 'table',
         padding: '3px',
         fontSize: '12px',
-        marginTop: '10px',
+        marginBottom: '10px',
         width: '325px'
     };
     const errorMessageStyle = {
