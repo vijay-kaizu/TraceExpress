@@ -61,6 +61,7 @@ const TraceComponent = () => {
             sessionStorage.setItem('searchProduct', "")
         }
         event.preventDefault();
+        setListLoaded(false)
         loadList();
     };
     const searchControlsStyle = {
@@ -79,6 +80,7 @@ const TraceComponent = () => {
             setShouldLoadList(true)
         } else {
             sessionStorage.setItem('searchProduct', "")
+            setListLoaded(false)
             loadList();
         }
 
@@ -87,6 +89,7 @@ const TraceComponent = () => {
 
     useEffect(() => {
         if (shouldLoadList) {
+            setListLoaded(false)
             loadList();
             setShouldLoadList(false);
         }
@@ -96,8 +99,6 @@ const TraceComponent = () => {
         <div>
             {error ? (
                 <div>{t('Error Loading List')}: {error}</div>
-            ) : !listLoaded ? (
-                <div>{t('Loading...')}</div>
             ) : (
                 <Table bordered={false}>
                     <tbody>
@@ -148,7 +149,7 @@ const TraceComponent = () => {
                         </form>
                     </td>
                     <td>
-                        {!isFirstLoad ?
+                        {listLoaded && !isFirstLoad ?
                             <Table striped bordered hover size="sm">
                                 <thead>
                                 <tr>
