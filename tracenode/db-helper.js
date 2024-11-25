@@ -13,10 +13,14 @@ class DbHelper {
 
     async connect() {
         if (envSettings.databases[this.db_name].DB_TYPE === "oracle") {
+            const dbUrl = envSettings.databases[this.db_name].DB_URL;
+            const oracleRegex = /oracle:\/\/(.*?):"(.*?)"@(.*?)(?:\/(.*))/;
+            const match = dbUrl.match(oracleRegex);
+            const [, user, password, server, database] = match;
             this.oracle_connection = await oracledb.getConnection({
-                user: envSettings.databases[this.db_name].ORACLE_DB.USER_NAME,
-                password: envSettings.databases[this.db_name].ORACLE_DB.PASSWORD,
-                connectString: envSettings.databases[this.db_name].ORACLE_DB.HOST + '/' + envSettings.databases[this.db_name].ORACLE_DB.DB_INSTANCE
+                user: user,
+                password: password,
+                connectString: server + '/' + database
             });
 
         } else {

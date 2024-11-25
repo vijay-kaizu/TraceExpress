@@ -11,6 +11,10 @@ module.exports = Object.freeze({
             DB_URL: 'mysql://junit_user:"Junit_user_password@123"@115.241.198.148/trace_express',
             DB_TYPE: 'mysql'
         },
+        ERP59: {
+            DB_URL: 'oracle://C##trace_admin:"root"@192.168.0.106/ORCL',
+            DB_TYPE: 'oracle'
+        },
         trace_db_a: {
             DB_URL: 'oracle://admin:"trace123"@trace-orcl.cadv8fwjzfkf.ap-northeast-1.rds.amazonaws.com/ORCL',
             DB_TYPE: 'oracle'
