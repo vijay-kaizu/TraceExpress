@@ -1,8 +1,11 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Button} from 'react-bootstrap';
 
 const Settings = () => {
+    useEffect(() => {
+        sessionStorage.clear()
+    })
     const {t} = useTranslation();
     const containerStyle = {
         margin: "50px auto",
