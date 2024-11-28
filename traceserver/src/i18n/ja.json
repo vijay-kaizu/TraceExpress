@@ -20,7 +20,7 @@
   "loading": "ロード中...",
   "no_matching_records": "レコードが見つかりませんでした。",
   "start_new_inquiry": "新しい検索",
-  "home_button": "家",
+  "home_button": "ホーム",
   "trace": {
     "COMPANY_CODE": "COMPANY_CODE",
     "IC_LT_FROM_INDICATOR": "IC_LT_FROM INDICATOR",

@@ -64,7 +64,7 @@ const LookupResult = ({movement_code,
         display: 'table',
         padding: '3px',
         fontSize: '12px',
-        marginBottom: '10px',
+        marginBottom: isPanelVisible ? '2px' : '10px',
         width: '325px'
     };
     const errorMessageStyle = {
@@ -75,13 +75,15 @@ const LookupResult = ({movement_code,
         width: '20px'
     };
     const lookupResultStyle = {
+        maxHeight: '60vh',
+        marginBottom: '10px',
         border: '1px solid #17a2b8',
         backgroundColor: '#ffffff',
         padding: '2px',
         fontSize: '10px',
         width: '325px',
         display: !isPanelVisible ? 'none' : 'block',
-        overflow: 'scroll'
+        overflow: 'auto'
     };
     const valueStyle = {
         color: '#17a2b8',

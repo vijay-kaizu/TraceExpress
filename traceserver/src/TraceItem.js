@@ -229,6 +229,8 @@ const TraceItem = () => {
     };
 
     const showStyle = {
+        border: '1px solid #17a2b8',
+        backgroundColor: '#17a2b8',
         display: 'block'
     };
 
@@ -447,7 +449,7 @@ const TraceItem = () => {
                         <TableChartIcon fontSize="inherit"/>
                     </IconButton>
                 </td>
-                <td>
+                <td style={{paddingRight: '20px', paddingLeft: '10px'}}>
                     <Button onClick={() => {
                         sessionStorage.clear()
                     }}
