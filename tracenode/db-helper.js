@@ -21,8 +21,8 @@ class DbHelper {
 
         } else {
             const dbUrl = envSettings.databases[this.db_name].DB_URL;
-            const mssqlRegex = /mssql:\/\/(.*?):"(.*?)"@(.*?)(?:\/(.*))/;
-            const regex = /mysql:\/\/(.*?):"(.*?)"@(.*?)(?:\/(.*))/;
+            const mssqlRegex = /mssql:\/\/(.*?):([^@]+(?:@[^@]+)*)@([^\/]+)(?:\/(.*))?/;
+            const regex = /mysql:\/\/(.*?):([^@]+(?:@[^@]+)*)@([^\/]+)(?:\/(.*))?/;
             const mssqlMatch = dbUrl.match(mssqlRegex);
             const match = dbUrl.match(regex);
 

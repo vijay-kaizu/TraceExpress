@@ -3,12 +3,16 @@ module.exports = Object.freeze({
     ADMIN_ACCESS_TOKEN: 'mkN2ZqQubxyS8TzRurP2RCfEnCLjRgdF',
     USER_ACCESS_TOKEN: 'sfsnb9Nhzak2JB8CTXNYDy7NUqdy9wHn',
     databases: {
+        ERP62: {
+            DB_URL: 'mssql://v61j_fin:v61j_fin@EC2AMAZ-1NBHJ33/v61j_fin',
+            DB_TYPE: 'mssql'
+        },
         ERP61: {
-            DB_URL: 'mssql://trace_express:"Trace_pass@1234"@115.241.198.147/trace_express',
+            DB_URL: 'mssql://trace_express:Trace_pass@1234@115.241.198.147/trace_express',
             DB_TYPE: 'mssql'
         },
         ERP60: {
-            DB_URL: 'mysql://junit_user:"Junit_user_password@123"@115.241.198.148/trace_express',
+            DB_URL: 'mysql://junit_user:Junit_user_password@123@115.241.198.148/trace_express',
             DB_TYPE: 'mysql'
         },
         ERP59: {
