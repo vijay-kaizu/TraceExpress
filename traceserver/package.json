@@ -8,7 +8,7 @@
     "@mui/icons-material": "^6.1.7",
     "@mui/material": "^6.1.7",
     "bootstrap": "^5.3.3",
-    "gojs": "^3.0.13",
+    "gojs": "^2.1.28",
     "gojs-react": "^1.1.2",
     "i18next": "^23.16.5",
     "i18next-browser-languagedetector": "^8.0.0",
