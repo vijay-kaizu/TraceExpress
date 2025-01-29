@@ -4,6 +4,7 @@ import Table from "react-bootstrap/Table";
 import {CircularProgress} from "@mui/material";
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
+import {useTranslation} from "react-i18next";
 
 const LookupResult = ({movement_code,
                           lookup_id,
@@ -13,6 +14,7 @@ const LookupResult = ({movement_code,
                           activeItemId,
                           setActiveItemId
                       }) => {
+    const {t} = useTranslation();
     const [lookupResults, setLookupResults] = useState(null);
     const [success, setSuccess] = useState(true);
     const [message, setMessage] = useState(null);
@@ -142,6 +144,8 @@ const LookupResult = ({movement_code,
     } else {
         if (!success) {
             indents.push(<h6 style={errorMessageStyle}>{message}</h6>);
+        } else {
+            indents.push(<td style={keyStyle}>{t('no_records_found')}</td>);
         }
     }
 
